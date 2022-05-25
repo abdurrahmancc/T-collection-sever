@@ -3,7 +3,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
-const { send } = require("express/lib/response");
+const { json } = require("express/lib/response");
 require("dotenv").config();
 const port = process.env.PORT || 5000;
 
@@ -29,6 +29,8 @@ const verifyToken = (req, res, next) => {
   });
 };
 
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+
 const uri = `mongodb+srv://${process.env.USER_NAME}:${process.env.USER_PASS}@cluster0.kowtn.mongodb.net/?retryWrites=true&w=majority`;
 
 const client = new MongoClient(uri, {
@@ -44,6 +46,40 @@ const run = async () => {
     const usersCollection = client.db("t-collection").collection("users");
     const adminCollection = client.db("t-collection").collection("admin");
     const orderCollection = client.db("t-collection").collection("order");
+    const paymentCollection = client.db("t-collection").collection("payment");
+
+    // payment method
+    app.post("/create-payment-intent", verifyToken, async (req, res) => {
+      const { totalPrice } = req.body;
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: totalPrice * 100,
+        currency: "usd",
+        payment_method_types: ["card"],
+      });
+      res.send({ clientSecret: paymentIntent.client_secret });
+    });
+
+    app.patch("/order/:id", verifyToken, async (req, res) => {
+      const id = req.params.id;
+      const payment = req.body.payment;
+      const filter = { _id: ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          paid: true,
+          transactionId: payment.transactionId,
+        },
+      };
+      const result = await paymentCollection.insertOne(payment);
+      const updateOrder = await orderCollection.updateOne(filter, updateDoc);
+      res.send(updateOrder);
+    });
+
+    app.get("/order-payment/:id", verifyToken, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await orderCollection.findOne(query);
+      res.send(result);
+    });
 
     app.get("/get-order/:email", async (req, res) => {
       const email = req.params.email;

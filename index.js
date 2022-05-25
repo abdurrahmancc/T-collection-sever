@@ -52,6 +52,14 @@ const run = async () => {
       res.send(result);
     });
 
+    // delete order
+    app.delete("/order-delete/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await orderCollection.deleteOne(query);
+      res.send(result);
+    });
+
     //post order
     app.post("/order", verifyToken, async (req, res) => {
       const orderInfo = req.body;

@@ -43,6 +43,21 @@ const run = async () => {
     const servicesCollection = client.db("t-collection").collection("services");
     const usersCollection = client.db("t-collection").collection("users");
     const adminCollection = client.db("t-collection").collection("admin");
+    const orderCollection = client.db("t-collection").collection("order");
+
+    app.get("/get-order/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const result = await orderCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    //post order
+    app.post("/order", verifyToken, async (req, res) => {
+      const orderInfo = req.body;
+      const result = await orderCollection.insertOne(orderInfo);
+      res.send(result);
+    });
 
     //all user
     app.get("/all-user", verifyToken, async (req, res) => {
@@ -59,9 +74,9 @@ const run = async () => {
     });
 
     //delete admin
-    app.delete("/user/admin/:id", verifyToken, async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: ObjectId(id) };
+    app.delete("/admin-delete/:email", verifyToken, async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
       const result = await adminCollection.deleteOne(query);
       res.send(result);
     });
@@ -90,7 +105,6 @@ const run = async () => {
       const userInfo = req.body;
       const filter = { email: email };
       const options = { upsert: true };
-      console.log(email, userInfo);
       const updateDoc = {
         $set: userInfo,
       };

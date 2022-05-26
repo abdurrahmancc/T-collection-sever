@@ -47,6 +47,20 @@ const run = async () => {
     const adminCollection = client.db("t-collection").collection("admin");
     const orderCollection = client.db("t-collection").collection("order");
     const paymentCollection = client.db("t-collection").collection("payment");
+    const reviewCollection = client.db("t-collection").collection("review");
+
+    //review
+    app.post("/review", verifyToken, async (req, res) => {
+      const info = req.body;
+      const result = await reviewCollection.insertOne(info);
+      res.send(result);
+    });
+
+    //review
+    app.get("/reviews", verifyToken, async (req, res) => {
+      const result = await reviewCollection.find({}).toArray();
+      res.send(result);
+    });
 
     // all-payments
     app.get("/all-payments", verifyToken, async (req, res) => {

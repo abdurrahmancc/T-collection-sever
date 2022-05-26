@@ -59,7 +59,8 @@ const run = async () => {
 
     //review
     app.get("/reviews", verifyToken, async (req, res) => {
-      const result = await reviewCollection.find({}).toArray();
+      const result = await reviewCollection.find({}).sort({ _id: -1 }).toArray();
+      console.log(result);
       res.send(result);
     });
 

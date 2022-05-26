@@ -29,6 +29,7 @@ const verifyToken = (req, res, next) => {
   });
 };
 
+//stripy
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 const uri = `mongodb+srv://${process.env.USER_NAME}:${process.env.USER_PASS}@cluster0.kowtn.mongodb.net/?retryWrites=true&w=majority`;

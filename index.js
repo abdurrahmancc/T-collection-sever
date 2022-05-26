@@ -13,7 +13,6 @@ app.use(express.json());
 //verify jwt
 const verifyToken = (req, res, next) => {
   const authorization = req.headers.authorization;
-
   if (!authorization) {
     return res.status(401).send({ message: "Unauthorized Access" });
   }
@@ -32,6 +31,7 @@ const verifyToken = (req, res, next) => {
 //stripy
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
+//mongodb
 const uri = `mongodb+srv://${process.env.USER_NAME}:${process.env.USER_PASS}@cluster0.kowtn.mongodb.net/?retryWrites=true&w=majority`;
 
 const client = new MongoClient(uri, {

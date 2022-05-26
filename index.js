@@ -48,6 +48,20 @@ const run = async () => {
     const orderCollection = client.db("t-collection").collection("order");
     const paymentCollection = client.db("t-collection").collection("payment");
 
+    // all-payments
+    app.get("/all-payments", verifyToken, async (req, res) => {
+      const result = await paymentCollection.find({}).toArray();
+      res.send(result);
+    });
+
+    ///admin
+    app.get("/admin/:email", verifyToken, async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const result = await usersCollection.findOne(query);
+      res.send(result);
+    });
+
     // payment method
     app.post("/create-payment-intent", verifyToken, async (req, res) => {
       const { totalPrice } = req.body;
@@ -71,7 +85,21 @@ const run = async () => {
       };
       const result = await paymentCollection.insertOne(payment);
       const updateOrder = await orderCollection.updateOne(filter, updateDoc);
-      res.send(updateOrder);
+      res.send({ updateOrder, result });
+    });
+
+    //update available
+    app.patch("/update-available/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const info = req.body.available;
+      const updateDoc = {
+        $set: {
+          available: info,
+        },
+      };
+      const result = await servicesCollection.updateOne(filter, updateDoc);
+      res.send(result);
     });
 
     app.get("/order-payment/:id", verifyToken, async (req, res) => {
@@ -135,6 +163,27 @@ const run = async () => {
       };
       const result = await usersCollection.updateOne(filter, updateDoc);
       const admin = await adminCollection.insertOne(user);
+      res.send(result);
+    });
+
+    //add admin
+    app.put("/update-user/:email", verifyToken, async (req, res) => {
+      const email = req.params.email;
+      const info = req.body;
+      const filter = { email: email };
+      const options = { upsert: true };
+      console.log(info, email);
+      const updateDoc = {
+        $set: info,
+      };
+      const result = await usersCollection.updateOne(filter, updateDoc, options);
+      res.send(result);
+    });
+
+    app.get("/update-profileUser/:email", verifyToken, async (req, res) => {
+      const email = req.params.email;
+      const filter = { email: email };
+      const result = await usersCollection.findOne(filter);
       res.send(result);
     });
 

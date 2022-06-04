@@ -8,7 +8,14 @@ require("dotenv").config();
 const port = process.env.PORT || 5000;
 
 // app.use(cors());
-app.use(cors({ origin: "https://t-collection-eaf74.firebaseapp.com/" }));
+
+app.use(
+  cors({
+    credentials: true,
+    crossDomain: true,
+    origin: ["https://t-collection-eaf74.firebaseapp.com", "http://localhost:3000"],
+  })
+);
 app.use(express.json());
 
 //verify json web token
@@ -61,7 +68,6 @@ const run = async () => {
     //review
     app.get("/reviews", verifyToken, async (req, res) => {
       const result = await reviewCollection.find({}).sort({ _id: -1 }).toArray();
-      console.log(result);
       res.send(result);
     });
 
@@ -189,7 +195,6 @@ const run = async () => {
       const info = req.body;
       const filter = { email: email };
       const options = { upsert: true };
-      console.log(info, email);
       const updateDoc = {
         $set: info,
       };
